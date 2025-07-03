@@ -1,6 +1,6 @@
 import numpy as np
 import librosa
-from typing import Tuple, List
+from typing import Tuple, List, Dict, Any, Optional
 import os
 
 class AudioProcessor:
@@ -26,15 +26,19 @@ class AudioProcessor:
         Returns:
             音频信号
         """
-        signal, _ = librosa.load(file_path, sr=self.sr, duration=self.duration)
-        
-        # 确保所有音频长度一致
-        if len(signal) < self.n_samples:
-            signal = np.pad(signal, (0, self.n_samples - len(signal)))
-        else:
-            signal = signal[:self.n_samples]
+        try:
+            signal, _ = librosa.load(file_path, sr=self.sr, duration=self.duration)
             
-        return signal
+            # 确保所有音频长度一致
+            if len(signal) < self.n_samples:
+                signal = np.pad(signal, (0, self.n_samples - len(signal)))
+            else:
+                signal = signal[:self.n_samples]
+                
+            return signal
+        except Exception as e:
+            print(f"Error loading audio file {file_path}: {str(e)}")
+            return None
     
     def extract_features(self, signal: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         """
@@ -46,20 +50,100 @@ class AudioProcessor:
         Returns:
             MFCC特征, 频谱质心, 色度特征, 过零率
         """
-        # 提取MFCC特征
-        mfccs = librosa.feature.mfcc(y=signal, sr=self.sr, n_mfcc=13)
-        
-        # 提取频谱质心
-        spectral_centroids = librosa.feature.spectral_centroid(y=signal, sr=self.sr)[0]
-        
-        # 提取色度特征
-        chromagram = librosa.feature.chroma_stft(y=signal, sr=self.sr)
-        
-        # 计算过零率
-        zero_crossing_rate = librosa.feature.zero_crossing_rate(signal)[0]
-        
-        return mfccs, spectral_centroids, chromagram, zero_crossing_rate
+        try:
+            # 提取MFCC特征
+            mfccs = librosa.feature.mfcc(y=signal, sr=self.sr, n_mfcc=13)
+            
+            # 提取频谱质心
+            spectral_centroids = librosa.feature.spectral_centroid(y=signal, sr=self.sr)[0]
+            
+            # 提取色度特征
+            chromagram = librosa.feature.chroma_stft(y=signal, sr=self.sr)
+            
+            # 计算过零率
+            zero_crossing_rate = librosa.feature.zero_crossing_rate(signal)[0]
+            
+            return mfccs, spectral_centroids, chromagram, zero_crossing_rate
+        except Exception as e:
+            print(f"Error extracting features: {str(e)}")
+            return None, None, None, None
     
+    def extract_emotion_features(self, signal: np.ndarray) -> Optional[Dict[str, Any]]:
+        """
+        提取情感分析所需的特征
+        
+        Args:
+            signal: 音频信号
+            
+        Returns:
+            特征字典，包含MFCC、频谱质心、色度特征等
+        """
+        try:
+            # 提取基础特征
+            mfccs, spec_centroids, chroma, zcr = self.extract_features(signal)
+            
+            if mfccs is None:
+                return None
+            
+            # 计算RMS能量
+            rmse = librosa.feature.rms(y=signal)[0]
+            
+            # 返回特征字典格式，符合情感分类器的期望
+            features = {
+                'mfcc': np.mean(mfccs, axis=1),  # 取MFCC的均值
+                'spectral_centroid': np.mean(spec_centroids),
+                'chroma': np.mean(chroma, axis=1),  # 取色度特征的均值
+                'zero_crossing_rate': np.mean(zcr),
+                'rmse': np.mean(rmse)
+            }
+            
+            return features
+        except Exception as e:
+            print(f"Error extracting emotion features: {str(e)}")
+            return None
+    
+    def get_emotion_features(self, file_path: str) -> Optional[List[Dict[str, Any]]]:
+        """
+        从音频文件中提取情感特征序列（每3秒一个特征）
+        
+        Args:
+            file_path: 音频文件路径
+            
+        Returns:
+            特征序列列表
+        """
+        try:
+            # 加载完整音频
+            signal, _ = librosa.load(file_path, sr=self.sr)
+            
+            # 分段提取特征（每3秒一段）
+            segment_duration = 3  # 秒
+            segment_samples = segment_duration * self.sr
+            features_sequence = []
+            
+            # 确保至少有一段
+            if len(signal) < segment_samples:
+                signal = np.pad(signal, (0, segment_samples - len(signal)))
+            
+            # 按3秒分段
+            for i in range(0, len(signal), segment_samples):
+                segment = signal[i:i + segment_samples]
+                
+                # 如果最后一段不足3秒，补零
+                if len(segment) < segment_samples:
+                    segment = np.pad(segment, (0, segment_samples - len(segment)))
+                
+                # 提取该段的特征
+                features = self.extract_emotion_features(segment)
+                if features is not None:
+                    features_sequence.append(features)
+            
+            return features_sequence if features_sequence else None
+            
+        except Exception as e:
+            print(f"Error processing audio file {file_path}: {str(e)}")
+            return None
+
     def process_audio_file(self, file_path: str) -> np.ndarray:
         """
         处理单个音频文件并提取特征
@@ -72,9 +156,13 @@ class AudioProcessor:
         """
         # 加载音频
         signal = self.load_audio(file_path)
+        if signal is None:
+            return None
         
         # 提取特征
         mfccs, spec_centroids, chroma, zcr = self.extract_features(signal)
+        if mfccs is None:
+            return None
         
         # 计算统计特征
         features = []
@@ -137,7 +225,8 @@ class AudioProcessor:
                 file_path = os.path.join(genre_path, file_name)
                 feature_vector = self.process_audio_file(file_path)
                 
-                features.append(feature_vector)
-                labels.append(genre_id)
+                if feature_vector is not None:
+                    features.append(feature_vector)
+                    labels.append(genre_id)
         
         return np.array(features), np.array(labels)
