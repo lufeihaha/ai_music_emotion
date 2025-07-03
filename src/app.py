@@ -119,4 +119,7 @@ if __name__ == '__main__':
         print("警告: 模型初始化失败，将使用模拟数据")
     
     print("启动Flask应用...")
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    print("可以通过以下地址访问:")
+    print("- 本地访问: http://127.0.0.1:5000")
+    print("- 网络访问: http://0.0.0.0:5000 (如果配置了端口转发)")
+    app.run(debug=True, host='0.0.0.0', port=5000, threaded=True) 
