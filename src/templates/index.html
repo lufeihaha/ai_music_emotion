@@ -66,8 +66,9 @@
             <div id="dropZone">
                 <i class="fas fa-music emotion-icon"></i>
                 <h3>拖放音频文件到这里</h3>
-                <p>或者点击选择文件</p>
-                <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+                <p>支持MP3、WAV、FLAC、<span style="color: #ff6b6b; font-weight: bold;">NCM</span>等格式</p>
+                <p><small>网易云音乐NCM文件会自动转换</small></p>
+                <input type="file" id="fileInput" accept="audio/*,.ncm" style="display: none;">
             </div>
             <div class="progress mt-3">
                 <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
@@ -144,10 +145,12 @@
         function handleFiles(files) {
             if (files.length > 0) {
                 const file = files[0];
-                if (file.type.startsWith('audio/')) {
+                const fileName = file.name.toLowerCase();
+                
+                if (file.type.startsWith('audio/') || fileName.endsWith('.ncm')) {
                     uploadFile(file);
                 } else {
-                    alert('请上传音频文件！');
+                    alert('请上传音频文件（支持MP3、WAV、FLAC、NCM等格式）！');
                 }
             }
         }

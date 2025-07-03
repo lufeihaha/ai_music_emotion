@@ -8,11 +8,23 @@ from pathlib import Path
 import joblib
 import librosa
 from sklearn.preprocessing import StandardScaler
+import tempfile
+import shutil
 
 # 添加项目路径
 current_dir = Path(__file__).parent.absolute()
 project_root = current_dir.parent
 sys.path.insert(0, str(current_dir))
+
+# 导入NCM转换器
+try:
+    from ncm_converter import NCMConverter
+    NCM_SUPPORT = True
+    print("✅ NCM转换器加载成功")
+except ImportError as e:
+    NCM_SUPPORT = False
+    print(f"⚠️ NCM转换器加载失败: {e}")
+    print("   NCM文件将不被支持")
 
 # 创建Flask应用，指定正确的模板目录
 template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), 'templates'))
@@ -22,6 +34,114 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max-limit
 
 # 确保上传目录存在
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+class NCMAudioProcessor:
+    """NCM音频处理器，支持自动转换"""
+    
+    def __init__(self, sr=22050, duration=30):
+        self.sr = sr
+        self.duration = duration
+        self.ncm_converter = NCMConverter() if NCM_SUPPORT else None
+    
+    def process_ncm_file(self, ncm_path):
+        """处理NCM文件，转换为音频文件"""
+        if not self.ncm_converter:
+            raise Exception("NCM转换器未加载")
+        
+        # 创建临时目录
+        temp_dir = tempfile.mkdtemp()
+        try:
+            # 复制NCM文件到临时目录
+            temp_ncm = os.path.join(temp_dir, os.path.basename(ncm_path))
+            shutil.copy2(ncm_path, temp_ncm)
+            
+            # 转换NCM文件
+            if self.ncm_converter.convert_ncm_file(temp_ncm):
+                # 查找转换后的音频文件
+                audio_files = []
+                for ext in ['.mp3', '.flac']:
+                    potential_file = temp_ncm.replace('.ncm', ext)
+                    if os.path.exists(potential_file):
+                        audio_files.append(potential_file)
+                
+                if audio_files:
+                    return audio_files[0]  # 返回第一个找到的音频文件
+                else:
+                    raise Exception("转换后的音频文件未找到")
+            else:
+                raise Exception("NCM文件转换失败")
+                
+        except Exception as e:
+            # 清理临时目录
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            raise e
+    
+    def extract_features(self, file_path):
+        """提取音频特征，支持NCM文件自动转换"""
+        original_path = file_path
+        temp_dir = None
+        
+        try:
+            # 检查是否为NCM文件
+            if file_path.lower().endswith('.ncm'):
+                if not self.ncm_converter:
+                    raise Exception("不支持NCM格式：缺少转换器")
+                
+                print(f"🔄 检测到NCM文件，正在转换: {os.path.basename(file_path)}")
+                audio_path = self.process_ncm_file(file_path)
+                temp_dir = os.path.dirname(audio_path)
+                file_path = audio_path
+                print(f"✅ NCM转换成功: {os.path.basename(audio_path)}")
+            
+            # 加载音频
+            y, sr = librosa.load(file_path, sr=self.sr, duration=self.duration)
+            
+            # 提取MFCC特征
+            mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+            mfcc_mean = np.mean(mfccs, axis=1)
+            mfcc_std = np.std(mfccs, axis=1)
+            mfcc_max = np.max(mfccs, axis=1)
+            mfcc_min = np.min(mfccs, axis=1)
+            
+            # 提取频谱特征
+            spectral_centroids = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
+            spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)[0]
+            spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)[0]
+            
+            # 提取Chroma特征
+            chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+            chroma_mean = np.mean(chroma, axis=1)
+            chroma_std = np.std(chroma, axis=1)
+            
+            # 提取节奏特征
+            tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+            
+            # 提取零交叉率
+            zcr = librosa.feature.zero_crossing_rate(y)
+            
+            # 组合所有特征
+            features = np.concatenate([
+                mfcc_mean, mfcc_std, mfcc_max, mfcc_min,
+                [np.mean(spectral_centroids), np.std(spectral_centroids), 
+                 np.max(spectral_centroids), np.min(spectral_centroids)],
+                [np.mean(spectral_rolloff), np.std(spectral_rolloff),
+                 np.max(spectral_rolloff), np.min(spectral_rolloff)],
+                [np.mean(spectral_bandwidth), np.std(spectral_bandwidth),
+                 np.max(spectral_bandwidth), np.min(spectral_bandwidth)],
+                chroma_mean, chroma_std,
+                [tempo],
+                [np.mean(zcr), np.std(zcr), np.max(zcr), np.min(zcr)]
+            ])
+            
+            return features
+            
+        except Exception as e:
+            print(f"特征提取错误: {e}")
+            return None
+        finally:
+            # 清理临时目录
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
 class SimpleAudioProcessor:
     """简化的音频处理器，兼容Web应用"""
@@ -161,7 +281,7 @@ class EmotionPredictor:
             }
 
 # 初始化处理器
-audio_processor = SimpleAudioProcessor()
+audio_processor = NCMAudioProcessor() if NCM_SUPPORT else SimpleAudioProcessor()
 emotion_predictor = EmotionPredictor()
 
 @app.route('/')
@@ -220,7 +340,9 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'model_loaded': emotion_predictor.model is not None,
-        'scaler_loaded': emotion_predictor.scaler is not None
+        'scaler_loaded': emotion_predictor.scaler is not None,
+        'ncm_support': NCM_SUPPORT,
+        'supported_formats': ['MP3', 'WAV', 'FLAC', 'M4A', 'OGG'] + (['NCM'] if NCM_SUPPORT else [])
     })
 
 if __name__ == '__main__':
