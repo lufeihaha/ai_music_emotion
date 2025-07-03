@@ -1,0 +1,151 @@
+{
+    "dataset": {
+        "name": "gtzan",
+        "path": "data/raw",
+        "processed_path": "data/processed",
+        "genres": ["blues", "classical", "country", "disco", "hiphop", "jazz", "metal", "pop", "reggae", "rock"],
+        "emotions": {
+            "energetic": ["rock", "metal", "disco", "hiphop"],
+            "calm": ["classical", "jazz"],
+            "happy": ["pop", "reggae"],
+            "melancholic": ["blues", "country"]
+        },
+        "sample_rate": 22050,
+        "duration": 30,
+        "segment_duration": 3,
+        "hop_length": 1.5
+    },
+    "data_augmentation": {
+        "enabled": true,
+        "methods": [
+            {
+                "name": "noise",
+                "params": {
+                    "min_noise_factor": 0.002,
+                    "max_noise_factor": 0.01
+                }
+            },
+            {
+                "name": "pitch_shift",
+                "params": {
+                    "min_steps": -3,
+                    "max_steps": 3
+                }
+            },
+            {
+                "name": "time_stretch",
+                "params": {
+                    "min_rate": 0.9,
+                    "max_rate": 1.1
+                }
+            }
+        ],
+        "augmentations_per_sample": 2
+    },
+    "feature_extraction": {
+        "mfcc": {
+            "enabled": true,
+            "n_mfcc": 20,
+            "n_fft": 2048,
+            "hop_length": 512
+        },
+        "spectral": {
+            "enabled": true,
+            "features": [
+                "centroid",
+                "bandwidth",
+                "rolloff",
+                "contrast",
+                "flatness"
+            ],
+            "n_fft": 2048,
+            "hop_length": 512
+        },
+        "rhythm": {
+            "enabled": true,
+            "features": [
+                "tempo",
+                "beat_frames",
+                "onset_strength"
+            ]
+        },
+        "chroma": {
+            "enabled": true,
+            "n_chroma": 12,
+            "n_fft": 2048,
+            "hop_length": 512
+        },
+        "mel_spectrogram": {
+            "enabled": true,
+            "n_mels": 128,
+            "n_fft": 2048,
+            "hop_length": 512
+        }
+    },
+    "model": {
+        "type": "deep",
+        "architecture": "cnn_lstm",
+        "params": {
+            "conv_layers": [
+                {
+                    "filters": 32,
+                    "kernel_size": 3,
+                    "activation": "relu"
+                },
+                {
+                    "filters": 64,
+                    "kernel_size": 3,
+                    "activation": "relu"
+                }
+            ],
+            "lstm_units": [128, 64],
+            "dense_layers": [256, 128],
+            "dropout_rate": 0.3,
+            "learning_rate": 0.001,
+            "batch_size": 32,
+            "epochs": 100
+        }
+    },
+    "training": {
+        "test_size": 0.2,
+        "validation_size": 0.2,
+        "random_state": 42,
+        "stratify": true,
+        "early_stopping": {
+            "enabled": true,
+            "patience": 10,
+            "monitor": "val_loss"
+        },
+        "model_checkpoint": {
+            "enabled": true,
+            "monitor": "val_accuracy",
+            "save_best_only": true
+        }
+    },
+    "tuning": {
+        "enabled": true,
+        "n_trials": 50,
+        "cv": 5,
+        "param_ranges": {
+            "learning_rate": [0.0001, 0.01],
+            "batch_size": [16, 64],
+            "dropout_rate": [0.2, 0.5],
+            "conv_filters": [16, 64],
+            "lstm_units": [32, 256]
+        }
+    },
+    "visualization": {
+        "enabled": true,
+        "types": [
+            "confusion_matrix",
+            "training_history",
+            "feature_importance",
+            "tsne_projection"
+        ],
+        "figsize": [12, 8],
+        "style": "seaborn",
+        "dpi": 300,
+        "save_format": "png"
+    },
+    "output_dir": "outputs"
+} 

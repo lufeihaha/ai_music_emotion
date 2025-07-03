@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI歌声情绪识别系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.2.2/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .upload-area {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            height: 400px;
+        }
+        .emotion-label {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: #333;
+        }
+        #dropZone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #dropZone:hover, #dropZone.dragover {
+            border-color: #0d6efd;
+            background-color: rgba(13,110,253,0.1);
+        }
+        .progress {
+            display: none;
+            margin-top: 1rem;
+        }
+        .emotion-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-5">AI歌声情绪识别系统</h1>
+        
+        <div class="upload-area">
+            <div id="dropZone">
+                <i class="fas fa-music emotion-icon"></i>
+                <h3>拖放音频文件到这里</h3>
+                <p>或者点击选择文件</p>
+                <input type="file" id="fileInput" accept="audio/*" style="display: none;">
+            </div>
+            <div class="progress mt-3">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="chart-container">
+                    <div id="emotionChart" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <h2 class="emotion-label">
+                <i class="fas fa-smile emotion-icon"></i>
+                <span id="currentEmotion">等待分析...</span>
+            </h2>
+        </div>
+    </div>
+
+    <script>
+        // 初始化ECharts
+        const chart = echarts.init(document.getElementById('emotionChart'));
+        
+        // 拖放区域事件处理
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const progressBar = document.querySelector('.progress-bar');
+        const progress = document.querySelector('.progress');
+
+        // 防止浏览器默认行为
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 拖放效果
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        // 处理文件上传
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('audio/')) {
+                    uploadFile(file);
+                } else {
+                    alert('请上传音频文件！');
+                }
+            }
+        }
+
+        function uploadFile(file) {
+            progress.style.display = 'block';
+            progressBar.style.width = '0%';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                updateChart(data);
+                progress.style.display = 'none';
+            })
+            .catch(error => {
+                alert('上传失败: ' + error.message);
+                progress.style.display = 'none';
+            });
+
+            // 模拟上传进度
+            let width = 0;
+            const interval = setInterval(() => {
+                width += 5;
+                if (width > 90) clearInterval(interval);
+                progressBar.style.width = width + '%';
+            }, 100);
+        }
+
+        function updateChart(data) {
+            const emotions = data.emotions;
+            const timestamps = data.timestamps;
+            
+            const series = Object.keys(emotions[0].probabilities).map(emotion => ({
+                name: emotion,
+                type: 'line',
+                smooth: true,
+                data: emotions.map(e => e.probabilities[emotion])
+            }));
+
+            const option = {
+                title: {
+                    text: '情绪变化曲线'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: Object.keys(emotions[0].probabilities)
+                },
+                xAxis: {
+                    type: 'category',
+                    data: timestamps.map(t => t + 's')
+                },
+                yAxis: {
+                    type: 'value',
+                    min: 0,
+                    max: 1
+                },
+                series: series
+            };
+
+            chart.setOption(option);
+
+            // 更新当前情绪显示
+            const currentEmotion = emotions[emotions.length - 1].emotion;
+            document.getElementById('currentEmotion').textContent = 
+                `当前情绪: ${getEmotionText(currentEmotion)}`;
+        }
+
+        function getEmotionText(emotion) {
+            const emotionMap = {
+                'happy': '快乐',
+                'sad': '悲伤',
+                'angry': '愤怒',
+                'peaceful': '平静',
+                'excited': '兴奋'
+            };
+            return emotionMap[emotion] || emotion;
+        }
+
+        // 响应窗口大小变化
+        window.addEventListener('resize', () => {
+            chart.resize();
+        });
+    </script>
+</body>
+</html> 
