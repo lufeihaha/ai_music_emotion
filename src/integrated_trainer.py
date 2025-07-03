@@ -117,7 +117,7 @@ class IntegratedTrainer:
         self.logger.info("开始数据预处理...")
         
         # 创建数据预处理器
-        self.preprocessor = DataPreprocessor()
+        self.preprocessor = DataPreprocessor(config_path="../config.json")
         
         # 运行预处理
         result = self.preprocessor.run_preprocessing()
@@ -139,7 +139,7 @@ class IntegratedTrainer:
         self.logger.info("开始特征提取...")
         
         # 创建特征提取器
-        self.feature_extractor = AdvancedFeatureExtractor()
+        self.feature_extractor = AdvancedFeatureExtractor(config_path="../config.json")
         
         # 读取预处理后的片段数据
         segments_path = Path(self.config['dataset']['processed_path']) / "segments_catalog.csv"
@@ -418,6 +418,118 @@ class IntegratedTrainer:
         self.logger.info(f"深度学习模型训练完成，测试准确率: {test_accuracy:.4f}")
         
         return {'deep_model': result}
+    
+    def load_preprocessed_features(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        加载预处理的特征数据（用于模拟数据或预生成的特征）
+        
+        Returns:
+            特征矩阵、情感标签、标签ID
+        """
+        self.logger.info("加载预处理的特征数据...")
+        
+        # 尝试多个可能的路径
+        possible_paths = [
+            Path(self.config['dataset']['processed_path']) / "features.csv",
+            Path("../data/processed/features.csv"),
+            Path("data/processed/features.csv"),
+            Path("/workspace/data/processed/features.csv")
+        ]
+        
+        features_path = None
+        for path in possible_paths:
+            self.logger.info(f"尝试路径: {path}, 存在: {path.exists()}")
+            if path.exists():
+                features_path = path
+                break
+        
+        if not features_path:
+            raise FileNotFoundError(f"未找到特征文件，尝试的路径: {[str(p) for p in possible_paths]}")
+        
+        self.logger.info(f"使用特征文件: {features_path}")
+        
+        # 读取特征数据
+        features_df = pd.read_csv(features_path)
+        
+        # 分离特征和标签
+        feature_columns = [col for col in features_df.columns if col not in ['emotion', 'label_id']]
+        X = features_df[feature_columns].values
+        emotions = features_df['emotion'].values
+        label_ids = features_df['label_id'].values
+        
+        self.logger.info(f"加载特征数据完成，特征矩阵形状: {X.shape}")
+        self.logger.info(f"情感类别: {np.unique(emotions)}")
+        
+        return X, emotions, label_ids
+
+    def run_mock_training(self) -> Dict:
+        """
+        使用模拟数据运行训练流程（跳过音频处理）
+        
+        Returns:
+            完整的训练结果
+        """
+        start_time = datetime.now()
+        self.logger.info("开始模拟数据机器学习训练流程...")
+        
+        # 1. 加载预处理的特征数据
+        X, emotions, label_ids = self.load_preprocessed_features()
+        
+        # 2. 准备训练数据
+        X_train, X_test, y_train, y_test = self.prepare_training_data(X, emotions, label_ids)
+        
+        # 3. 训练传统机器学习模型
+        sklearn_results = self.train_sklearn_models(X_train, X_test, y_train, y_test)
+        
+        # 4. 训练深度学习模型
+        deep_results = self.train_deep_model(X_train, X_test, y_train, y_test)
+        
+        # 5. 汇总结果
+        end_time = datetime.now()
+        training_time = (end_time - start_time).total_seconds()
+        
+        final_results = {
+            'preprocessing': {
+                'total_files': len(emotions),
+                'total_segments': len(emotions),
+                'train_samples': len(X_train),
+                'val_samples': 0,  # 模拟数据中没有单独的验证集
+                'test_samples': len(X_test),
+                'emotions': list(np.unique(emotions[emotions != 'unknown'])) if 'unknown' in emotions else list(np.unique(emotions))
+            },
+            'feature_extraction': {
+                'feature_shape': X.shape,
+                'num_emotions': len(np.unique(emotions[emotions != 'unknown'])) if 'unknown' in emotions else len(np.unique(emotions)),
+                'emotions': list(np.unique(emotions[emotions != 'unknown'])) if 'unknown' in emotions else list(np.unique(emotions))
+            },
+            'sklearn_models': sklearn_results,
+            'deep_models': deep_results,
+            'training_time_seconds': training_time,
+            'timestamp': start_time.isoformat(),
+            'data_type': 'mock'  # 标识这是模拟数据
+        }
+        
+        # 保存完整结果
+        results_path = self.results_dir / 'complete_training_results.json'
+        with open(results_path, 'w', encoding='utf-8') as f:
+            # 转换numpy类型为JSON可序列化类型
+            def convert_numpy(obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif isinstance(obj, (np.float32, np.float64)):
+                    return float(obj)
+                elif isinstance(obj, (np.int32, np.int64)):
+                    return int(obj)
+                return obj
+            
+            json.dump(final_results, f, ensure_ascii=False, indent=2, default=convert_numpy)
+        
+        # 打印摘要
+        self.print_training_summary(final_results)
+        
+        self.logger.info(f"模拟数据训练流程完成，总耗时: {training_time:.2f} 秒")
+        
+        return final_results
     
     def run_complete_training(self) -> Dict:
         """

@@ -1,0 +1,23 @@
+{
+  "total_files": 998,
+  "genres": {
+    "classical": 125,
+    "jazz": 125,
+    "blues": 125,
+    "country": 125,
+    "reggae": 125,
+    "pop": 125,
+    "metal": 62,
+    "rock": 62,
+    "disco": 62,
+    "hiphop": 62
+  },
+  "emotions": {
+    "calm": 250,
+    "happy": 250,
+    "melancholic": 250,
+    "energetic": 248
+  },
+  "avg_file_size": 1024000,
+  "total_size": 1021952000
+}

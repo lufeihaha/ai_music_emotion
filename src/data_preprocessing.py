@@ -61,8 +61,14 @@ class DataPreprocessor:
         Returns:
             包含文件信息的DataFrame
         """
+        # 如果当前在src目录，需要调整路径
         raw_path = Path(self.dataset_config['path'])
+        if not raw_path.exists() and Path("../data/raw").exists():
+            raw_path = Path("../data/raw")
+        
         processed_path = Path(self.dataset_config['processed_path'])
+        if not processed_path.parent.exists() and Path("../data").exists():
+            processed_path = Path("../data/processed")
         
         # 创建处理后的数据目录
         processed_path.mkdir(parents=True, exist_ok=True)
