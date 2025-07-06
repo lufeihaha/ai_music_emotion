@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速测试 - 音乐情感识别</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-area { border: 1px solid #ccc; padding: 20px; margin: 10px 0; }
+        .result { background: #f0f8ff; padding: 10px; margin: 10px 0; }
+        .error { background: #ffe6e6; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 音乐情感识别 - 快速测试</h1>
+    
+    <div class="test-area">
+        <h3>1. 测试健康检查</h3>
+        <button onclick="testHealth()">检查系统状态</button>
+        <div id="healthResult"></div>
+    </div>
+    
+    <div class="test-area">
+        <h3>2. 测试音频上传和预测</h3>
+        <input type="file" id="audioFile" accept="audio/*">
+        <button onclick="testPredict()">测试预测</button>
+        <div id="predictResult"></div>
+    </div>
+    
+    <div class="test-area">
+        <h3>3. 测试日志</h3>
+        <div id="logs" style="font-family: monospace; background: #f5f5f5; padding: 10px; height: 200px; overflow-y: scroll;"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const time = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${time}] ${message}<br>`;
+            logs.scrollTop = logs.scrollHeight;
+            console.log(message);
+        }
+        
+        async function testHealth() {
+            log('🔍 测试健康检查...');
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                log(`✅ 健康检查成功: ${JSON.stringify(data)}`);
+                document.getElementById('healthResult').innerHTML = 
+                    `<div class="result">状态: ${data.status}<br>预测器: ${data.predictor_loaded ? '已加载' : '未加载'}</div>`;
+            } catch (error) {
+                log(`❌ 健康检查失败: ${error}`);
+                document.getElementById('healthResult').innerHTML = 
+                    `<div class="error">错误: ${error.message}</div>`;
+            }
+        }
+        
+        async function testPredict() {
+            const fileInput = document.getElementById('audioFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log('❌ 请先选择音频文件');
+                return;
+            }
+            
+            log(`🎵 测试预测: ${file.name} (${(file.size/1024/1024).toFixed(2)}MB)`);
+            
+            const formData = new FormData();
+            formData.append('audio', file);
+            
+            try {
+                log('📤 发送预测请求...');
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                log(`📥 响应状态: ${response.status}`);
+                const data = await response.json();
+                log(`📊 响应数据: ${JSON.stringify(data)}`);
+                
+                if (data.error) {
+                    document.getElementById('predictResult').innerHTML = 
+                        `<div class="error">错误: ${data.error}</div>`;
+                } else {
+                    document.getElementById('predictResult').innerHTML = 
+                        `<div class="result">
+                            <strong>预测情感:</strong> ${data.predicted_emotion}<br>
+                            <strong>置信度:</strong> ${(data.confidence * 100).toFixed(1)}%<br>
+                            <strong>所有概率:</strong><br>
+                            ${Object.entries(data.all_probabilities).map(([emotion, prob]) => 
+                                `&nbsp;&nbsp;${emotion}: ${(prob * 100).toFixed(1)}%`
+                            ).join('<br>')}
+                        </div>`;
+                }
+                
+            } catch (error) {
+                log(`❌ 预测失败: ${error}`);
+                document.getElementById('predictResult').innerHTML = 
+                    `<div class="error">网络错误: ${error.message}</div>`;
+            }
+        }
+        
+        // 页面加载时自动测试健康检查
+        window.onload = function() {
+            log('🚀 页面加载完成，开始测试...');
+            testHealth();
+        };
+    </script>
+</body>
+</html> 

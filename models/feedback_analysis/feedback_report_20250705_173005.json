@@ -1,0 +1,53 @@
+{
+  "timestamp": "2025-07-05T17:30:05.908402",
+  "summary": {
+    "total_feedback": 5,
+    "overall_accuracy": 0.0,
+    "average_confidence": 0.30743357689394973,
+    "average_rating": 2.0
+  },
+  "detailed_analysis": {
+    "accuracy": {
+      "overall_accuracy": 0.0,
+      "total_feedback": 5,
+      "emotion_accuracy": {
+        "激昂": {
+          "accuracy": 0.0,
+          "total_predictions": 2,
+          "correct_predictions": 0
+        },
+        "平静": {
+          "accuracy": 0.0,
+          "total_predictions": 3,
+          "correct_predictions": 0
+        }
+      },
+      "common_mistakes": [
+        [
+          "激昂",
+          "怀念",
+          2
+        ],
+        [
+          "平静",
+          "忧郁",
+          1
+        ],
+        [
+          "平静",
+          "怀念",
+          1
+        ],
+        [
+          "平静",
+          "浪漫",
+          1
+        ]
+      ],
+      "average_confidence": 0.30743357689394973,
+      "low_confidence_threshold": 0.5,
+      "low_confidence_count": 5
+    },
+    "confidence": {
+      "confidence_distribution": {
+        

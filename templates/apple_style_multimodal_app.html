@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 多模态音乐情感识别 - Apple Style</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #1d1d1f;
+            line-height: 1.47059;
+            font-weight: 400;
+            letter-spacing: -0.022em;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            letter-spacing: -0.025em;
+            line-height: 1.08349;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #86868b;
+            font-weight: 400;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            letter-spacing: -0.01em;
+            line-height: 1.38462;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #1d1d1f;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+            letter-spacing: -0.019em;
+            line-height: 1.21053;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-modes {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-align: center;
+            font-weight: 500;
+            color: #86868b;
+            font-size: 14px;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #1d1d1f;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #1d1d1f;
+            font-size: 15px;
+        }
+
+        .file-upload-area {
+            border: 2px dashed #d2d2d7;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .file-upload-area:hover {
+            border-color: #007aff;
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .file-upload-area.dragover {
+            border-color: #007aff;
+            background: rgba(0, 122, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .lyrics-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 2px solid #d2d2d7;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-weight: 400;
+            letter-spacing: -0.016em;
+            line-height: 1.33337;
+            resize: vertical;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .lyrics-textarea:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+            font-size: 15px;
+            letter-spacing: -0.016em;
+            line-height: 1.33337;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #007aff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #34c759;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ff9500;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-content {
+            min-height: 200px;
+        }
+
+        .result-display {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .emotion-result {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .emotion-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .emotion-name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 8px;
+        }
+
+        .emotion-confidence {
+            font-size: 1.2rem;
+            color: #86868b;
+            font-weight: 500;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007aff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ff3b30;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #34c759;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .visualization-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .visualization-container.show {
+            display: block;
+        }
+
+        .visualization-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .visualization-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+
+        /* 情感标签样式 */
+        .emotion-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .emotion-tag {
+            background: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* 分析详情 */
+        .analysis-details {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: #1d1d1f;
+        }
+
+        .detail-value {
+            color: #86868b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎭 多模态音乐情感识别</h1>
+            <p>融合音频与歌词的智能情感分析系统</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 输入面板 -->
+            <div class="glass-card">
+                <h2 class="section-title">🎯 分析设置</h2>
+                
+                <!-- 分析模式选择 -->
+                <div class="analysis-modes">
+                    <button class="mode-btn active" data-mode="multimodal">
+                        🎭 多模态分析
+                    </button>
+                    <button class="mode-btn" data-mode="audio">
+                        🎵 仅音频
+                    </button>
+                    <button class="mode-btn" data-mode="lyrics">
+                        📝 仅歌词
+                    </button>
+                </div>
+
+                <!-- 音频上传 -->
+                <div class="input-section" id="audio-section">
+                    <label>🎵 音频文件</label>
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div>
+                            <p style="font-size: 1.1rem; margin-bottom: 8px; color: #1d1d1f;">📁 点击或拖拽上传音频文件</p>
+                            <p style="color: #86868b; font-size: 0.9rem;">支持 MP3, WAV, FLAC, M4A 格式</p>
+                            <input type="file" id="audioFile" accept=".mp3,.wav,.flac,.m4a" style="display: none;">
+                        </div>
+                    </div>
+                    <div id="fileName" style="margin-top: 12px; color: #007aff; font-weight: 500;"></div>
+                </div>
+
+                <!-- 歌词输入 -->
+                <div class="input-section" id="lyrics-section">
+                    <label>📝 歌词文本</label>
+                    <textarea 
+                        id="lyricsText" 
+                        class="lyrics-textarea" 
+                        placeholder="请输入歌词内容...&#10;&#10;支持中文歌词情感分析&#10;可以包含情感词汇、意境描述等"
+                    ></textarea>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="analyzeBtn">
+                        🔍 开始分析
+                    </button>
+                    <button class="btn btn-secondary" id="visualizeBtn" disabled>
+                        📊 生成图表
+                    </button>
+                    <button class="btn btn-warning" id="clearBtn">
+                        🧹 清除内容
+                    </button>
+                </div>
+            </div>
+
+            <!-- 结果面板 -->
+            <div class="glass-card">
+                <h2 class="section-title">📊 分析结果</h2>
+                
+                <div class="result-content">
+                    <!-- 加载状态 -->
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>正在分析中，请稍候...</p>
+                    </div>
+
+                    <!-- 错误信息 -->
+                    <div class="error-message" id="errorMessage"></div>
+
+                    <!-- 成功信息 -->
+                    <div class="success-message" id="successMessage"></div>
+
+                    <!-- 结果显示 -->
+                    <div class="result-display" id="resultDisplay" style="display: none;">
+                        <div class="emotion-result" id="emotionResult">
+                            <span class="emotion-icon" id="emotionIcon">🎵</span>
+                            <div class="emotion-name" id="emotionName">等待分析...</div>
+                            <div class="emotion-confidence" id="emotionConfidence">置信度: --</div>
+                        </div>
+
+                        <!-- 分析详情 -->
+                        <div class="analysis-details" id="analysisDetails" style="display: none;">
+                            <div class="detail-item">
+                                <span class="detail-label">分析方法:</span>
+                                <span class="detail-value" id="analysisMethod">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">预测策略:</span>
+                                <span class="detail-value" id="predictionStrategy">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">音频权重:</span>
+                                <span class="detail-value" id="audioWeight">--</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">歌词权重:</span>
+                                <span class="detail-value" id="lyricsWeight">--</span>
+                            </div>
+                        </div>
+
+                        <!-- 情感标签 -->
+                        <div class="emotion-tags" id="emotionTags"></div>
+                    </div>
+
+                    <!-- 可视化图表 -->
+                    <div class="visualization-container" id="visualizationContainer">
+                        <div class="visualization-title">📊 情感分析可视化图表</div>
+                        <img id="visualizationImage" alt="情感分析可视化图表">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentMode = 'multimodal';
+        let lastAnalysisResult = null;
+        let selectedFile = null;
+
+        // DOM 元素
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const audioFile = document.getElementById('audioFile');
+        const fileName = document.getElementById('fileName');
+        const lyricsText = document.getElementById('lyricsText');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const visualizeBtn = document.getElementById('visualizeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const resultDisplay = document.getElementById('resultDisplay');
+        const emotionIcon = document.getElementById('emotionIcon');
+        const emotionName = document.getElementById('emotionName');
+        const emotionConfidence = document.getElementById('emotionConfidence');
+        const analysisDetails = document.getElementById('analysisDetails');
+        const emotionTags = document.getElementById('emotionTags');
+        const visualizationContainer = document.getElementById('visualizationContainer');
+        const visualizationImage = document.getElementById('visualizationImage');
+
+        // 情感配置
+        const emotionConfig = {
+            '快乐': { icon: '😊', color: '#34c759' },
+            '平静': { icon: '🍃', color: '#007aff' },
+            '激昂': { icon: '⚡', color: '#ff3b30' },
+            '忧郁': { icon: '☁️', color: '#5856d6' },
+            '怀念': { icon: '⏰', color: '#ff9500' },
+            '浪漫': { icon: '💕', color: '#ff2d92' },
+            '深沉': { icon: '🌙', color: '#8e8e93' },
+            '激烈': { icon: '🎭', color: '#ff6b35' },
+            'happy': { icon: '😊', color: '#34c759' },
+            'calm': { icon: '🍃', color: '#007aff' },
+            'energetic': { icon: '⚡', color: '#ff3b30' },
+            'melancholic': { icon: '☁️', color: '#5856d6' },
+            'nostalgic': { icon: '⏰', color: '#ff9500' },
+            'romantic': { icon: '💕', color: '#ff2d92' },
+            'mysterious': { icon: '🌙', color: '#8e8e93' },
+            'dramatic': { icon: '🎭', color: '#ff6b35' }
+        };
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateModeDisplay();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 模式切换
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentMode = this.dataset.mode;
+                    updateModeDisplay();
+                });
+            });
+
+            // 文件上传
+            fileUploadArea.addEventListener('click', () => audioFile.click());
+            fileUploadArea.addEventListener('dragover', handleDragOver);
+            fileUploadArea.addEventListener('drop', handleDrop);
+            fileUploadArea.addEventListener('dragleave', handleDragLeave);
+            audioFile.addEventListener('change', handleFileSelect);
+
+            // 按钮事件
+            analyzeBtn.addEventListener('click', startAnalysis);
+            visualizeBtn.addEventListener('click', generateVisualization);
+            clearBtn.addEventListener('click', clearAll);
+        }
+
+        // 更新模式显示
+        function updateModeDisplay() {
+            const audioSection = document.getElementById('audio-section');
+            const lyricsSection = document.getElementById('lyrics-section');
+
+            switch(currentMode) {
+                case 'multimodal':
+                    audioSection.style.display = 'block';
+                    lyricsSection.style.display = 'block';
+                    break;
+                case 'audio':
+                    audioSection.style.display = 'block';
+                    lyricsSection.style.display = 'none';
+                    break;
+                case 'lyrics':
+                    audioSection.style.display = 'none';
+                    lyricsSection.style.display = 'block';
+                    break;
+            }
+        }
+
+        // 文件拖拽处理
+        function handleDragOver(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect({ target: { files: files } });
+            }
+        }
+
+        // 文件选择处理
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                fileName.textContent = `已选择: ${file.name}`;
+                fileName.style.display = 'block';
+            }
+        }
+
+        // 开始分析
+        function startAnalysis() {
+            const lyrics = lyricsText.value.trim();
+            
+            // 验证输入
+            if (currentMode === 'audio' && !selectedFile) {
+                showError('请选择音频文件');
+                return;
+            }
+            
+            if (currentMode === 'lyrics' && !lyrics) {
+                showError('请输入歌词内容');
+                return;
+            }
+            
+            if (currentMode === 'multimodal' && !selectedFile && !lyrics) {
+                showError('请至少提供音频文件或歌词');
+                return;
+            }
+
+            // 显示加载状态
+            showLoading();
+            
+            // 创建表单数据
+            const formData = new FormData();
+            if (selectedFile) {
+                formData.append('audio', selectedFile);
+            }
+            if (lyrics) {
+                formData.append('lyrics', lyrics);
+            }
+
+            // 选择API端点
+            let endpoint;
+            switch(currentMode) {
+                case 'multimodal':
+                    endpoint = '/predict';
+                    break;
+                case 'audio':
+                    endpoint = '/audio_only';
+                    break;
+                case 'lyrics':
+                    endpoint = '/lyrics_only';
+                    break;
+            }
+
+            // 发送请求
+            fetch(endpoint, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResult(data);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('分析失败: ' + error.message);
+            });
+        }
+
+        // 显示结果
+        function showResult(data) {
+            lastAnalysisResult = data;
+            
+            // 更新情感显示
+            const emotion = data.predicted_emotion;
+            const confidence = data.confidence;
+            const config = emotionConfig[emotion] || { icon: '🎵', color: '#007aff' };
+            
+            emotionIcon.textContent = config.icon;
+            emotionName.textContent = emotion;
+            emotionConfidence.textContent = `置信度: ${(confidence * 100).toFixed(1)}%`;
+            
+            // 更新分析详情
+            if (data.modality) {
+                document.getElementById('analysisMethod').textContent = data.modality;
+                analysisDetails.style.display = 'block';
+            }
+            
+            if (data.prediction_strategy) {
+                const strategyNames = {
+                    'audio_only_fallback': '仅音频分析',
+                    'lyrics_only_fallback': '仅歌词分析',
+                    'multimodal_optimal': '多模态融合分析'
+                };
+                document.getElementById('predictionStrategy').textContent = 
+                    strategyNames[data.prediction_strategy] || data.prediction_strategy;
+            }
+            
+            if (data.fusion_weights) {
+                document.getElementById('audioWeight').textContent = 
+                    `${(data.fusion_weights.audio * 100).toFixed(1)}%`;
+                document.getElementById('lyricsWeight').textContent = 
+                    `${(data.fusion_weights.lyrics * 100).toFixed(1)}%`;
+            }
+
+            // 更新情感标签
+            updateEmotionTags(data.all_probabilities);
+            
+            // 显示结果
+            resultDisplay.style.display = 'block';
+            visualizeBtn.disabled = false;
+            
+            showSuccess('分析完成！');
+        }
+
+        // 更新情感标签
+        function updateEmotionTags(probabilities) {
+            emotionTags.innerHTML = '';
+            
+            if (probabilities) {
+                Object.entries(probabilities)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5)
+                    .forEach(([emotion, prob]) => {
+                        const tag = document.createElement('span');
+                        tag.className = 'emotion-tag';
+                        tag.textContent = `${emotion} ${(prob * 100).toFixed(1)}%`;
+                        emotionTags.appendChild(tag);
+                    });
+            }
+        }
+
+        // 生成可视化图表
+        function generateVisualization() {
+            if (!lastAnalysisResult) {
+                showError('请先进行分析');
+                return;
+            }
+
+            showLoading();
+
+            fetch('/visualize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(lastAnalysisResult)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                console.log('Visualization response:', data);
+                if (data.success && data.image) {
+                    // 使用base64图片数据
+                    visualizationImage.src = `data:image/png;base64,${data.image}`;
+                    visualizationContainer.classList.add('show');
+                    
+                    // 根据图表类型显示不同的成功消息
+                    if (data.type === 'simplified') {
+                        showSuccess('简化分析图表生成成功！');
+                    } else {
+                        showSuccess('可视化图表生成成功！');
+                    }
+                } else {
+                    showError(data.error || '生成图表失败');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('生成图表失败: ' + error.message);
+                console.error('Visualization error:', error);
+            });
+        }
+
+        // 清除所有内容
+        function clearAll() {
+            selectedFile = null;
+            audioFile.value = '';
+            fileName.textContent = '';
+            fileName.style.display = 'none';
+            lyricsText.value = '';
+            resultDisplay.style.display = 'none';
+            visualizationContainer.classList.remove('show');
+            visualizeBtn.disabled = true;
+            lastAnalysisResult = null;
+            hideAllMessages();
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            loading.classList.add('show');
+            hideAllMessages();
+        }
+
+        // 隐藏加载状态
+        function hideLoading() {
+            loading.classList.remove('show');
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // 显示成功信息
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.add('show');
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 3000);
+        }
+
+        // 隐藏所有消息
+        function hideAllMessages() {
+            errorMessage.classList.remove('show');
+            successMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html> 

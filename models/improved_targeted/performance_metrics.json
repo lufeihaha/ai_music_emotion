@@ -1,0 +1,16 @@
+{
+  "accuracy": 0.675,
+  "avg_confidence": 0.5522999999999999,
+  "improvement_over_baseline": 0.675,
+  "confidence_improvement": 0.2452999999999999,
+  "training_samples": 1199,
+  "test_samples": 240,
+  "feature_count": 2000,
+  "emotion_classes": [
+    "calm",
+    "energetic",
+    "happy",
+    "melancholic"
+  ],
+  "timestamp": "2025-07-05T17:59:35.539772"
+}

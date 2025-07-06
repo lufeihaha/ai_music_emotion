@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI歌声情绪识别系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 添加支持emoji的字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Apple+Color+Emoji&family=Segoe+UI+Emoji&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: none;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+        
+        .emotion-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin: 0.5rem 0;
+        }
+        
+        .emotion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .progress {
+            height: 25px;
+            border-radius: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            cursor: pointer;
+            padding: 15px;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: block;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .file-input-label:hover {
+            border-color: #764ba2;
+            background: rgba(118, 75, 162, 0.1);
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .result-section {
+            display: none;
+        }
+        
+        .result-section.show {
+            display: block !important;
+        }
+        
+        .emotion-icons {
+            font-size: 2.5rem;
+            margin-right: 8px;
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+            line-height: 1;
+            display: inline-block;
+        }
+        
+        /* 确保emoji正确显示 */
+        .emotion-card span {
+            font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+        }
+        
+        .calm { color: #28a745; }
+        .energetic { color: #dc3545; }
+        .happy { color: #ffc107; }
+        .melancholic { color: #6f42c1; }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <h1 class="display-4 text-white mb-3">
+                        <i class="fas fa-music me-3"></i>
+                        AI歌声情绪识别系统
+                    </h1>
+                    <p class="lead text-white">
+                        上传您的音乐文件，使用AI技术发现其情感本质
+                    </p>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>
+                            上传您的音乐
+                        </h3>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="uploadForm" enctype="multipart/form-data">
+                            <div class="file-input-wrapper">
+                                <input type="file" id="audioFile" name="audio" class="file-input" accept=".wav,.mp3,.flac,.ogg,.m4a">
+                                <label for="audioFile" class="file-input-label">
+                                    <i class="fas fa-file-audio fa-3x mb-3 text-muted"></i>
+                                    <h5>拖放音频文件到这里</h5>
+                                    <p class="text-muted mb-0">或者点击选择文件</p>
+                                    <p class="text-muted small">支持格式: WAV, MP3, FLAC, OGG, M4A</p>
+                                    <p class="text-muted small">最大文件大小: 16MB</p>
+                                </label>
+                            </div>
+                            
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg me-3">
+                                    <i class="fas fa-brain me-2"></i>
+                                    分析情感
+                                </button>
+                                <button type="button" id="visualizeBtn" class="btn btn-outline-primary btn-lg me-3">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    可视化音频
+                                </button>
+                                <button type="button" id="batchBtn" class="btn btn-outline-success btn-lg me-3" onclick="toggleBatchMode()">
+                                    <i class="fas fa-layer-group me-2"></i>
+                                    批量处理
+                                </button>
+                                <button type="button" id="historyBtn" class="btn btn-outline-info btn-lg" onclick="showHistory()">
+                                    <i class="fas fa-history me-2"></i>
+                                    历史记录
+                                </button>
+                            </div>
+                            
+                            <!-- Batch Processing Section -->
+                            <div id="batchSection" class="mt-4" style="display: none;">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>批量模式：</strong>可以同时上传多个音频文件进行分析
+                                    <br>
+                                    <small class="text-muted">
+                                        • 最多支持10个文件 • 单个文件不超过20MB • 总大小不超过80MB
+                                    </small>
+                                </div>
+                                <input type="file" id="batchFiles" multiple accept=".wav,.mp3,.flac,.ogg,.m4a" class="form-control mb-3">
+                                <button type="button" id="processBatch" class="btn btn-success">
+                                    <i class="fas fa-play me-2"></i>
+                                    开始批量处理
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Loading -->
+                        <div id="loading" class="loading text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-3">正在分析您的音乐...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="result-section">
+                    <!-- Prediction Results -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3 class="mb-0">
+                                <i class="fas fa-heart me-2"></i>
+                                情感分析结果
+                            </h3>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="primaryEmotion" class="text-center p-3">
+                                        <h4>预测情感</h4>
+                                        <div id="emotionDisplay" class="my-3">
+                                            <i id="emotionIcon" class="emotion-icons"></i>
+                                            <span id="emotionText" class="h4"></span>
+                                        </div>
+                                        <div class="progress mb-2" style="height: 20px;">
+                                            <div id="confidenceBar" class="progress-bar" role="progressbar"></div>
+                                        </div>
+                                        <p id="confidenceText" class="text-muted mb-0 small"></p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="mb-2">所有情感概率</h5>
+                                    <div id="allEmotions"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Feedback Section -->
+                    <div id="feedbackSection" class="card mb-4" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="mb-0">
+                                <i class="fas fa-comment-dots me-2"></i>
+                                用户反馈
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">您认为这个预测结果准确吗？您的反馈将帮助我们改进模型。</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">实际情感：</label>
+                                    <select id="actualEmotion" class="form-select mb-3">
+                                        <option value="">选择实际情感</option>
+                                        <option value="快乐">😊 快乐</option>
+                                        <option value="平静">🍃 平静</option>
+                                        <option value="激昂">⚡ 激昂</option>
+                                        <option value="忧郁">☁️ 忧郁</option>
+                                        <option value="怀念">⏰ 怀念</option>
+                                        <option value="浪漫">💕 浪漫</option>
+                                        <option value="深沉">🌙 深沉</option>
+                                        <option value="激烈">🎭 激烈</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">评分（1-5星）：</label>
+                                    <div class="rating mb-3">
+                                        <input type="radio" name="rating" id="star5" value="5">
+                                        <label for="star5">⭐</label>
+                                        <input type="radio" name="rating" id="star4" value="4">
+                                        <label for="star4">⭐</label>
+                                        <input type="radio" name="rating" id="star3" value="3">
+                                        <label for="star3">⭐</label>
+                                        <input type="radio" name="rating" id="star2" value="2">
+                                        <label for="star2">⭐</label>
+                                        <input type="radio" name="rating" id="star1" value="1">
+                                        <label for="star1">⭐</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">其他意见：</label>
+                                <textarea id="userComment" class="form-control" rows="3" placeholder="请分享您的想法..."></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="submitFeedback()">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                提交反馈
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Visualization -->
+                    <div id="visualizationSection" class="card mb-4" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="mb-0">
+                                <i class="fas fa-waveform-path me-2"></i>
+                                音频可视化
+                            </h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <img id="visualizationImage" class="img-fluid rounded" alt="Audio Visualization">
+                        </div>
+                    </div>
+
+                    <!-- Batch Results -->
+                    <div id="batchResults" class="card" style="display: none;">
+                        <div class="card-header">
+                            <h3 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                批量处理结果
+                            </h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="batchResultsList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Section -->
+                <div id="error" class="alert alert-danger" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="errorMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const audioFile = document.getElementById('audioFile');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const error = document.getElementById('error');
+        const visualizeBtn = document.getElementById('visualizeBtn');
+        const fileLabel = document.querySelector('.file-input-label');
+
+        // Emotion configuration - 支持中文情感
+        const emotionConfig = {
+            // 英文情感（兼容性）
+            'calm': { icon: '🍃', color: '#28a745', description: '平静安详' },
+            'energetic': { icon: '⚡', color: '#dc3545', description: '充满活力' },
+            'happy': { icon: '😊', color: '#ffc107', description: '快乐愉悦' },
+            'melancholic': { icon: '☁️', color: '#6f42c1', description: '忧郁深思' },
+            'nostalgic': { icon: '⏰', color: '#17a2b8', description: '怀念过往' },
+            'romantic': { icon: '💕', color: '#e83e8c', description: '浪漫温馨' },
+            
+            // 中文情感
+            '快乐': { icon: '😊', color: '#ffc107', description: '快乐愉悦' },
+            '平静': { icon: '🍃', color: '#28a745', description: '平静安详' },
+            '激昂': { icon: '⚡', color: '#dc3545', description: '充满活力' },
+            '忧郁': { icon: '☁️', color: '#6f42c1', description: '忧郁深思' },
+            '怀念': { icon: '⏰', color: '#17a2b8', description: '怀念过往' },
+            '浪漫': { icon: '💕', color: '#e83e8c', description: '浪漫温馨' },
+            '深沉': { icon: '🌙', color: '#6c757d', description: '深沉内敛' },
+            '激烈': { icon: '🎭', color: '#fd7e14', description: '激烈强烈' }
+        };
+        
+        // Emotion name mapping - 统一显示名称
+        const emotionNameMap = {
+            'calm': '平静',
+            'energetic': '激昂', 
+            'happy': '快乐',
+            'melancholic': '忧郁',
+            'nostalgic': '怀念',
+            'romantic': '浪漫',
+            
+            // 中文情感直接显示
+            '快乐': '快乐',
+            '平静': '平静',
+            '激昂': '激昂',
+            '忧郁': '忧郁',
+            '怀念': '怀念',
+            '浪漫': '浪漫',
+            '深沉': '深沉',
+            '激烈': '激烈'
+        };
+
+        // File selection handler
+        audioFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileLabel.innerHTML = `
+                    <i class="fas fa-file-audio fa-2x mb-2 text-success"></i>
+                    <h6>${file.name}</h6>
+                    <p class="text-muted small mb-0">文件大小: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                `;
+                fileLabel.style.borderColor = '#28a745';
+                fileLabel.style.background = 'rgba(40, 167, 69, 0.1)';
+            }
+        });
+
+        // Form submission
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const file = audioFile.files[0];
+            if (!file) {
+                showError('请先选择一个音频文件。');
+                return;
+            }
+
+            predictEmotion(file);
+        });
+
+        // Visualize button
+        visualizeBtn.addEventListener('click', function() {
+            const file = audioFile.files[0];
+            if (!file) {
+                showError('请先选择一个音频文件。');
+                return;
+            }
+
+            visualizeAudio(file);
+        });
+
+        function predictEmotion(file) {
+            console.log('🔍 开始预测情感:', file.name);
+            
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            showLoading('正在分析情感...');
+            hideError();
+            hideResults();
+
+            console.log('📤 发送预测请求...');
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('📥 收到响应，状态:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('📊 响应数据:', data);
+                console.log('📊 数据类型:', typeof data);
+                console.log('📊 predicted_emotion:', data.predicted_emotion);
+                console.log('📊 confidence:', data.confidence);
+                console.log('📊 all_probabilities:', data.all_probabilities);
+                
+                hideLoading();
+                if (data.error) {
+                    console.error('❌ 服务器错误:', data.error);
+                    showError(data.error);
+                } else {
+                    console.log('✅ 预测成功，显示结果');
+                    showResults(data);
+                }
+            })
+            .catch(error => {
+                console.error('❌ 网络错误:', error);
+                hideLoading();
+                showError('分析音频时发生错误，请重试。');
+            });
+        }
+
+        function visualizeAudio(file) {
+            const formData = new FormData();
+            formData.append('audio', file);
+
+            showLoading('正在生成可视化...');
+            hideError();
+
+            fetch('/visualize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showVisualization(data.image);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('生成可视化时发生错误，请重试。');
+                console.error('Error:', error);
+            });
+        }
+
+
+
+        function showVisualization(imageBase64) {
+            const img = document.getElementById('visualizationImage');
+            img.src = `data:image/png;base64,${imageBase64}`;
+            document.getElementById('visualizationSection').style.display = 'block';
+        }
+
+        function showLoading(message) {
+            loading.querySelector('p').textContent = message;
+            loading.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+
+
+
+        function hideResults() {
+            results.classList.remove('show');
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            error.style.display = 'block';
+        }
+
+        function hideError() {
+            error.style.display = 'none';
+        }
+
+        // 新增功能：批量处理
+        function toggleBatchMode() {
+            const batchSection = document.getElementById('batchSection');
+            const batchBtn = document.getElementById('batchBtn');
+            
+            if (batchSection.style.display === 'none') {
+                batchSection.style.display = 'block';
+                batchBtn.innerHTML = '<i class="fas fa-times me-2"></i>取消批量';
+                batchBtn.className = 'btn btn-outline-danger btn-lg me-3';
+            } else {
+                batchSection.style.display = 'none';
+                batchBtn.innerHTML = '<i class="fas fa-layer-group me-2"></i>批量处理';
+                batchBtn.className = 'btn btn-outline-success btn-lg me-3';
+            }
+        }
+
+        // 处理批量文件
+        document.getElementById('processBatch').addEventListener('click', function() {
+            const files = document.getElementById('batchFiles').files;
+            if (files.length === 0) {
+                showError('请选择要处理的文件');
+                return;
+            }
+
+            // 检查文件数量限制
+            if (files.length > 10) {
+                showError('批量处理最多支持10个文件');
+                return;
+            }
+
+            // 检查文件大小
+            let totalSize = 0;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.size > 20 * 1024 * 1024) {
+                    showError(`文件 "${file.name}" 大小超过20MB限制`);
+                    return;
+                }
+                totalSize += file.size;
+            }
+
+            if (totalSize > 80 * 1024 * 1024) {
+                showError('所有文件总大小不能超过80MB');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('audio_files', files[i]);
+            }
+
+            showLoading(`正在处理 ${files.length} 个文件... (总大小: ${(totalSize/1024/1024).toFixed(1)}MB)`);
+            hideError();
+
+            fetch('/batch_predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 413) {
+                        throw new Error('文件太大，请减少文件数量或选择更小的文件');
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                hideLoading();
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showBatchResults(data);
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('批量处理错误:', error);
+                if (error.message.includes('413') || error.message.includes('文件太大')) {
+                    showError('文件太大，请减少文件数量或选择更小的文件');
+                } else {
+                    showError('批量处理时发生错误: ' + error.message);
+                }
+            });
+        });
+
+        // 显示批量结果
+        function showBatchResults(data) {
+            const batchResults = document.getElementById('batchResults');
+            const batchResultsList = document.getElementById('batchResultsList');
+            
+            // 显示统计信息
+            const statsHtml = `
+                <div class="alert alert-info mb-3">
+                    <h6 class="mb-2"><i class="fas fa-chart-bar me-2"></i>批量处理统计</h6>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>总文件数:</strong> ${data.total_files}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>成功处理:</strong> ${data.total_processed}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>成功率:</strong> ${data.success_rate}
+                        </div>
+                        <div class="col-md-3">
+                            <strong>失败数:</strong> ${data.total_files - data.total_processed}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            batchResultsList.innerHTML = statsHtml;
+            
+            data.results.forEach((result, index) => {
+                const resultCard = document.createElement('div');
+                resultCard.className = 'card mb-3';
+                
+                if (result.error) {
+                    resultCard.innerHTML = `
+                        <div class="card-body">
+                            <h6 class="card-title text-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                ${result.original_filename}
+                            </h6>
+                            <p class="text-danger small mb-0">错误: ${result.error}</p>
+                        </div>
+                    `;
+                } else {
+                    const emotion = result.predicted_emotion;
+                    const config = emotionConfig[emotion] || { icon: '❓', color: '#6c757d' };
+                    
+                    resultCard.innerHTML = `
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-music me-2"></i>
+                                    ${result.original_filename}
+                                </h6>
+                                <small class="text-muted">${result.file_size_mb}MB</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2" style="color: ${config.color}; font-size: 1.5rem;">${config.icon}</span>
+                                <span class="fw-bold">${emotionNameMap[emotion] || emotion}</span>
+                                <span class="badge bg-primary ms-2">${(result.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="progress mt-2" style="height: 6px;">
+                                <div class="progress-bar" style="width: ${result.confidence * 100}%; background-color: ${config.color}"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                batchResultsList.appendChild(resultCard);
+            });
+            
+            batchResults.style.display = 'block';
+        }
+
+        // 用户反馈功能
+        let currentPrediction = null;
+        let currentFileName = null;
+
+        function showResults(data) {
+            // 保存当前预测结果用于反馈
+            currentPrediction = data;
+            currentFileName = audioFile.files[0] ? audioFile.files[0].name : 'unknown';
+            
+            console.log('🎯 显示预测结果:', data);
+            
+            try {
+                const emotion = data.predicted_emotion;
+                const confidence = data.confidence;
+                const allProbs = data.all_probabilities;
+
+                console.log(`📊 预测情感: ${emotion}, 置信度: ${confidence}`);
+
+                // 强制显示结果区域
+                console.log('🔧 强制显示结果区域');
+                const resultsDiv = document.getElementById('results');
+                if (resultsDiv) {
+                    resultsDiv.style.display = 'block';
+                    resultsDiv.style.visibility = 'visible';
+                    resultsDiv.classList.add('show');
+                    console.log('✅ 结果区域已显示');
+                } else {
+                    console.error('❌ 找不到results元素');
+                    return;
+                }
+
+                // Update primary emotion display
+                const config = emotionConfig[emotion] || { icon: '❓', color: '#6c757d', description: 'Unknown' };
+                
+                console.log('🎨 更新主要情感显示');
+                const emotionIcon = document.getElementById('emotionIcon');
+                const emotionText = document.getElementById('emotionText');
+                
+                if (emotionIcon) {
+                    // 使用emoji图标
+                    emotionIcon.className = 'emotion-icons';
+                    emotionIcon.textContent = config.icon;
+                    emotionIcon.style.color = config.color;
+                    emotionIcon.style.fontSize = '2.5rem';
+                    console.log('✅ 情感图标已更新:', config.icon);
+                } else {
+                    console.error('❌ 找不到emotionIcon元素');
+                }
+                
+                if (emotionText) {
+                    emotionText.textContent = emotionNameMap[emotion] || emotion;
+                    console.log('✅ 情感文本已更新');
+                } else {
+                    console.error('❌ 找不到emotionText元素');
+                }
+                
+                const confidenceBar = document.getElementById('confidenceBar');
+                if (confidenceBar) {
+                    confidenceBar.style.width = `${confidence * 100}%`;
+                    confidenceBar.style.backgroundColor = config.color;
+                    console.log('✅ 置信度条已更新');
+                }
+                
+                const confidenceText = document.getElementById('confidenceText');
+                if (confidenceText) {
+                    confidenceText.textContent = `置信度: ${(confidence * 100).toFixed(1)}%`;
+                    console.log('✅ 置信度文本已更新');
+                }
+
+                // Update all emotions
+                const allEmotionsDiv = document.getElementById('allEmotions');
+                if (allEmotionsDiv) {
+                    allEmotionsDiv.innerHTML = '';
+                    
+                    Object.entries(allProbs).forEach(([emo, prob]) => {
+                        const emoConfig = emotionConfig[emo] || { icon: '❓', color: '#6c757d' };
+                        const card = document.createElement('div');
+                        card.className = 'emotion-card p-2 border rounded mb-1';
+                        card.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="me-2" style="color: ${emoConfig.color}; font-size: 1.2rem;">${emoConfig.icon}</span>
+                                    <span class="fw-bold small">${emotionNameMap[emo] || emo}</span>
+                                </div>
+                                <span class="badge bg-secondary small">${(prob * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 6px;">
+                                <div class="progress-bar" style="width: ${prob * 100}%; background-color: ${emoConfig.color}"></div>
+                            </div>
+                        `;
+                        allEmotionsDiv.appendChild(card);
+                    });
+                    console.log('✅ 所有情感概率已更新');
+                }
+
+                // 显示反馈区域
+                document.getElementById('feedbackSection').style.display = 'block';
+
+                console.log('✅ showResults函数执行完成');
+                
+            } catch (error) {
+                console.error('❌ showResults函数执行错误:', error);
+            }
+        }
+
+        // 提交用户反馈
+        function submitFeedback() {
+            if (!currentPrediction) {
+                showError('没有可用的预测结果');
+                return;
+            }
+
+            const actualEmotion = document.getElementById('actualEmotion').value;
+            const rating = document.querySelector('input[name="rating"]:checked');
+            const comment = document.getElementById('userComment').value;
+
+            if (!actualEmotion && !rating && !comment) {
+                showError('请至少填写一项反馈内容');
+                return;
+            }
+
+            const feedbackData = {
+                file_name: currentFileName,
+                predicted_emotion: currentPrediction.predicted_emotion,
+                actual_emotion: actualEmotion,
+                confidence: currentPrediction.confidence,
+                user_rating: rating ? parseInt(rating.value) : 0,
+                user_comment: comment
+            };
+
+            fetch('/feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(feedbackData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    // 显示感谢消息
+                    const feedbackSection = document.getElementById('feedbackSection');
+                    feedbackSection.innerHTML = `
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <h5 class="text-success">感谢您的反馈！</h5>
+                            <p class="text-muted">您的意见对我们改进模型非常重要。</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                showError('提交反馈时发生错误，请重试。');
+                console.error('Error:', error);
+            });
+        }
+
+        // 显示历史记录
+        function showHistory() {
+            fetch('/history')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayHistory(data.history);
+                }
+            })
+            .catch(error => {
+                showError('获取历史记录时发生错误。');
+                console.error('Error:', error);
+            });
+        }
+
+        // 显示历史记录模态框
+        function displayHistory(history) {
+            // 这里可以创建一个模态框来显示历史记录
+            // 为了简化，我们先用alert显示
+            if (history.length === 0) {
+                alert('暂无历史记录');
+            } else {
+                let historyText = '最近的分析历史：\n\n';
+                history.slice(-10).forEach((item, index) => {
+                    historyText += `${index + 1}. ${item.file_name || 'Unknown'} - ${item.predicted_emotion} (${(item.confidence * 100).toFixed(1)}%)\n`;
+                });
+                alert(historyText);
+            }
+        }
+
+        // 添加评分星级样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .rating {
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: flex-end;
+            }
+            .rating input {
+                display: none;
+            }
+            .rating label {
+                cursor: pointer;
+                font-size: 1.5rem;
+                color: #ddd;
+                transition: color 0.2s;
+            }
+            .rating label:hover,
+            .rating label:hover ~ label,
+            .rating input:checked ~ label {
+                color: #ffc107;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html> 

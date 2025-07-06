@@ -1,0 +1,64 @@
+{
+  "chinese_emotion_enhancement": {
+    "nostalgic_keywords": [
+      "怀念",
+      "回忆",
+      "过去",
+      "思念",
+      "想起"
+    ],
+    "romantic_keywords": [
+      "爱情",
+      "浪漫",
+      "甜蜜",
+      "温柔",
+      "心动"
+    ],
+    "melancholic_keywords": [
+      "悲伤",
+      "忧郁",
+      "难过",
+      "心痛",
+      "眼泪"
+    ],
+    "tempo_emotion_mapping": {
+      "slow_nostalgic": {
+        "tempo_range": [
+          60,
+          85
+        ],
+        "emotion": "nostalgic"
+      },
+      "medium_romantic": {
+        "tempo_range": [
+          80,
+          110
+        ],
+        "emotion": "romantic"
+      },
+      "slow_melancholic": {
+        "tempo_range": [
+          50,
+          75
+        ],
+        "emotion": "melancholic"
+      }
+    },
+    "key_emotion_mapping": {
+      "minor_emotional": {
+        "key_mode": "minor",
+        "emotions": [
+          "nostalgic",
+          "melancholic"
+        ]
+      },
+      "major_positive": {
+        "key_mode": "major",
+        "emotions": [
+          "romantic",
+          "happy"
+        ]
+      }
+    }
+  }
+}

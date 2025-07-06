@@ -1,0 +1,28 @@
+{
+  "model_type": "comprehensive_8emotions",
+  "emotions": [
+    "happy",
+    "calm",
+    "energetic",
+    "melancholic",
+    "nostalgic",
+    "romantic",
+    "mysterious",
+    "dramatic"
+  ],
+  "accuracy": 0.4633977900552486,
+  "confidence": 0.3434306972470438,
+  "emotion_classes": [
+    "calm",
+    "dramatic",
+    "energetic",
+    "happy",
+    "melancholic",
+    "mysterious",
+    "nostalgic",
+    "romantic"
+  ],
+  "feature_dims": 2000,
+  "training_date": "2025-07-05T18:50:57.675653",
+  "description": "Comprehensive 8-emotion recognition model"
+}

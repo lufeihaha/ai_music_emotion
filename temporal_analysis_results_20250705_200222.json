@@ -1,0 +1,288 @@
+{
+  "start_year": 2005,
+  "end_year": 2020,
+  "total_songs": 5,
+  "yearly_emotions": {
+    "2006": [
+      "浪漫"
+    ],
+    "2007": [
+      "平静"
+    ],
+    "2015": [
+      "平静",
+      "浪漫"
+    ],
+    "2016": [
+      "浪漫"
+    ]
+  },
+  "trends": {
+    "yearly_proportions": {
+      "2006": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 1.0,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "2007": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 1.0,
+        "激昂": 0.0,
+        "浪漫": 0.0,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "2015": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.5,
+        "激昂": 0.0,
+        "浪漫": 0.5,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "2016": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 1.0,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      }
+    },
+    "emotion_trends": {
+      "快乐": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "忧郁": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "平静": {
+        "trend_direction": "decreasing",
+        "slope": -0.04999999999999993,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2007,
+        "peak_proportion": 1.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "激昂": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "浪漫": {
+        "trend_direction": "increasing",
+        "slope": 0.04999999999999987,
+        "change_rate": 0.0,
+        "initial_proportion": 1.0,
+        "final_proportion": 1.0,
+        "peak_year": 2006,
+        "peak_proportion": 1.0,
+        "low_year": 2007,
+        "low_proportion": 0.0
+      },
+      "深沉": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "怀念": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      },
+      "激烈": {
+        "trend_direction": "stable",
+        "slope": 0.0,
+        "change_rate": 0.0,
+        "initial_proportion": 0.0,
+        "final_proportion": 0.0,
+        "peak_year": 2006,
+        "peak_proportion": 0.0,
+        "low_year": 2006,
+        "low_proportion": 0.0
+      }
+    },
+    "major_trends": [],
+    "social_correlations": {
+      "events_analyzed": 0,
+      "correlations": []
+    },
+    "summary": "📅 分析时间范围: 2006-2016年\n📈 上升趋势情感: 浪漫\n📉 下降趋势情感: 平静\n➡️ 稳定情感: 快乐, 忧郁, 激昂, 深沉, 怀念, 激烈"
+  },
+  "detailed_results": [
+    {
+      "predicted_emotion": "浪漫",
+      "confidence": 0.2,
+      "all_probabilities": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 0.2,
+        "深沉": 0.2,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "analysis_method": "lyrics_analysis",
+      "word_count": 10,
+      "emotion_words_found": [],
+      "modality": "lyrics_only",
+      "prediction_strategy": "lyrics_only_fallback",
+      "title": "千里之外",
+      "artist": "周杰伦",
+      "year": 2006,
+      "genre": "流行",
+      "album": null
+    },
+    {
+      "predicted_emotion": "平静",
+      "confidence": 0.0,
+      "all_probabilities": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 0.0,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "analysis_method": "lyrics_analysis",
+      "word_count": 8,
+      "emotion_words_found": [],
+      "modality": "lyrics_only",
+      "prediction_strategy": "lyrics_only_fallback",
+      "title": "青花瓷",
+      "artist": "周杰伦",
+      "year": 2007,
+      "genre": "中国风",
+      "album": null
+    },
+    {
+      "predicted_emotion": "平静",
+      "confidence": 0.0,
+      "all_probabilities": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 0.0,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "analysis_method": "lyrics_analysis",
+      "word_count": 9,
+      "emotion_words_found": [],
+      "modality": "lyrics_only",
+      "prediction_strategy": "lyrics_only_fallback",
+      "title": "小幸运",
+      "artist": "田馥甄",
+      "year": 2015,
+      "genre": "流行",
+      "album": null
+    },
+    {
+      "predicted_emotion": "浪漫",
+      "confidence": 0.4,
+      "all_probabilities": {
+        "快乐": 0.0,
+        "忧郁": 0.0,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 0.4,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "analysis_method": "lyrics_analysis",
+      "word_count": 7,
+      "emotion_words_found": [],
+      "modality": "lyrics_only",
+      "prediction_strategy": "lyrics_only_fallback",
+      "title": "演员",
+      "artist": "薛之谦",
+      "year": 2015,
+      "genre": "流行",
+      "album": null
+    },
+    {
+      "predicted_emotion": "浪漫",
+      "confidence": 0.6,
+      "all_probabilities": {
+        "快乐": 0.0,
+        "忧郁": 0.4,
+        "平静": 0.0,
+        "激昂": 0.0,
+        "浪漫": 0.6,
+        "深沉": 0.0,
+        "怀念": 0.0,
+        "激烈": 0.0
+      },
+      "analysis_method": "lyrics_analysis",
+      "word_count": 6,
+      "emotion_words_found": [
+        {
+          "word": "温柔",
+          "emotion": "浪漫"
+        }
+      ],
+      "modality": "lyrics_only",
+      "prediction_strategy": "lyrics_only_fallback",
+      "title": "成都",
+      "artist": "赵雷",
+      "year": 2016,
+      "genre": "民谣",
+      "album": null
+    }
+  ],
+  "analysis_timestamp": "2025-07-05T20:02:20.919396"
+}

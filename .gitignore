@@ -1,0 +1,161 @@
+# Python相关
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# 音频文件相关
+*.wav
+*.mp3
+*.flac
+*.aac
+*.ogg
+*.m4a
+
+# 大型数据文件
+*.npy
+*.npz
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+*.temp
+
+# 用户上传文件
+uploads/
+user_uploads/
+
+# 模型文件（可选择性包含）
+# models/*.pkl
+# models/*.keras
+# models/*.h5
+
+# 数据文件（可选择性包含）
+# data/raw/
+# data/processed/
+
+# IDE相关
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS相关
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# TensorFlow日志
+logs/fit/
+
+# 缓存文件
+*.cache
+
+# 配置文件中的敏感信息
+config_local.json
+secrets.json 
